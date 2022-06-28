@@ -1,0 +1,179 @@
+import os,time,glob,win32com.client
+from datetime import datetime, timedelta ,date
+
+import selenium
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+
+import keyboard
+import openpyxl 
+from openpyxl import Workbook
+
+
+current_date = date.today()
+From_date = current_date - timedelta(days=1)
+From_date= From_date.strftime('%m/%d/%Y')
+
+os.environ['https_proxy'] = 'http://proxy.inbcu.com:80'
+d = date.today()
+print(d)
+
+def sap_download():
+
+
+    global file_name,download_location
+    os.system("TASKKILL /F /IM saplogon.exe /T")
+    path_sap = str(r"D:\Users\206692761\OneDrive - NBCUniversal\My Documents\Downloads")
+    download_location =  str(path_sap) + "\sap"
+    options = Options()  
+    options.add_experimental_option("prefs",{"download.default_directory":f"{download_location}"})
+    
+    # #  driver = webdriver.Chrome(chrome_options=options)
+    
+    options.add_argument("--headless")
+    options.add_argument("--window-size=1920,710")
+    options.add_experimental_option('excludeSwitches', ['enable-logging'])
+    driver = webdriver.Chrome(ChromeDriverManager().install(),options=options)
+    driver.maximize_window()
+
+    driver.get("https://portal.inbcu.com/irj/portal")
+    time.sleep(2)
+
+    if driver.title == "NBCUniversal SSO Login":
+     WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.ID ,'username')))
+     # os.chdir(r"D:\\")
+     
+     # with open('login.txt', 'r') as myfile:
+     #  Username = myfile.read().split('\n')[0]
+
+     # with open('login.txt', 'r') as myfile:
+     #  Password = myfile.read().split('\n')[1]
+     driver.find_element_by_id("username").send_keys('206692761@tfayd.com')
+
+            #with open('password.txt', 'r') as myfile:  
+     nbcu_password = 'Mokia@123'
+     driver.find_element_by_id("password").send_keys(nbcu_password)
+     driver.find_element_by_id("submitBtn").send_keys(Keys.ENTER)
+
+     WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.ID, 'navNodeAnchor_1_0')))
+     time.sleep(1.5)
+     driver.get("https://portal.inbcu.com/irj/servlet/prt/portal/prtroot/pcd!3aportal_content!2fcom.nbcuni.fi_portal_content!2fcom.nbcuni.roles!2fcom.nbcuni.sap_gen_3_5_uhp_rl!2fcom.nbcuni.aws_prod_uhp_iv")
+    #  driver.find_element_by_link_text("SAP Applications").click()
+    # #  navNodeAnchor_1_2
+    #  WebDriverWait(driver, 150).until(EC.presence_of_element_located((By.XPATH, "//*[@id='contentAreaDiv']/table/tbody/tr/td/table/tbody/tr[2]/td/table/tbody/tr/td[5]/table[2]/tbody/tr[2]/td/table/tbody/tr/td/span")))
+    #
+    #   driver.find_element_by_xpath("//*[@id='contentAreaDiv']/table/tbody/tr/td/table/tbody/tr[2]/td/table/tbody/tr/td[5]/table[2]/tbody/tr[2]/td/table/tbody/tr/td/span").click()
+     time.sleep(5)
+     driver.quit()
+
+    else:
+        print("Error")
+        driver.quit()
+
+    for file in glob.glob(download_location +'/*.sap'):
+        file_name= file
+        print (file_name)
+
+def sap_logon():  
+    global session
+    time.sleep(5)
+    # os.popen(r"D:\Data_Upload Bot\Userfiles\Sap\tx.sap")
+    os.chdir(r"D:\Users\206692761\OneDrive - NBCUniversal\My Documents\Downloads\sap")
+    os.system("tx.sap")
+    time.sleep(7)
+    # pyautogui.press('enter', presses=5)
+    keyboard.press_and_release('enter, enter, enter, enter, enter')
+    # p = subprocess.Popen(r"D:\Data_Upload Bot\Userfiles\Sap\tx.sap")
+    
+    SapGuiAuto = win32com.client.GetObject("SAPGUI")
+    if not type(SapGuiAuto) == win32com.client.CDispatch:
+      return
+
+    application = SapGuiAuto.GetScriptingEngine
+    if not type(application) == win32com.client.CDispatch:
+      SapGuiAuto = None
+      return
+
+    connection = application.Children(0)
+    session = connection.Children(0)
+    if not type(connection) == win32com.client.CDispatch:
+      application = None
+      SapGuiAuto = None
+      return
+
+def open_job():
+
+  session.findById("wnd[0]").maximize
+  session.findById("wnd[0]/tbar[0]/okcd").text = "/nsm37"
+  session.findById("wnd[0]").sendVKey(0)
+  session.findById("wnd[0]/usr/chkBTCH2170-SCHEDUL").selected = False
+  session.findById("wnd[0]/usr/chkBTCH2170-READY").selected = False
+  session.findById("wnd[0]/usr/chkBTCH2170-RUNNING").selected = False
+  session.findById("wnd[0]/usr/chkBTCH2170-FINISHED").selected = False
+  session.findById("wnd[0]/usr/txtBTCH2170-USERNAME").text = "*"
+  session.findById("wnd[0]/usr/ctxtBTCH2170-FROM_DATE").text = str(From_date)
+  session.findById("wnd[0]/usr/ctxtBTCH2170-FROM_DATE").setFocus
+  session.findById("wnd[0]/usr/ctxtBTCH2170-FROM_DATE").caretPosition = 10
+  session.findById("wnd[0]/tbar[1]/btn[8]").press()
+  session.findById("wnd[0]").sendVKey(8) 
+  session.findById("wnd[0]").maximize
+  session.findById("wnd[0]").sendVKey(16) 
+  session.findById("wnd[1]/usr/ctxtDY_PATH").text = r"D:\Users\206692761\OneDrive - NBCUniversal\My Documents\Downloads\excel"
+  session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = "cancelled.xlsx"
+  session.findById("wnd[1]/usr/ctxtDY_FILENAME").caretPosition = 9
+  session.findById("wnd[1]/tbar[0]/btn[11]").press()
+  os.system("TASKKILL /F /IM saplogon.exe /T")
+  os.system("TASKKILL /F /IM Excel.exe /T")
+
+def new_excel():        
+    del_list = []
+    need_list = []
+    path = r"D:\Users\206692761\OneDrive - NBCUniversal\My Documents\Downloads\excel\cancelled.xlsx"
+    wb_obj = openpyxl.load_workbook(path)
+    sheet_obj = wb_obj.active
+    sheet = wb_obj['Sheet1']
+    row1 = sheet_obj.max_row
+    column1 = sheet_obj.max_column
+    for i in range(1, row1 ): 
+        user_obj = sheet_obj.cell(row = i, column = 3)
+        job_obj =sheet_obj.cell(row=i,column=1)
+        user = user_obj.value
+        job =job_obj.value
+        if user[2]  in "0123456789":
+           # print("yes",user, user[2])
+           del_list.append(i)
+        elif "I729"  in job:
+           del_list.append(i) 
+        elif "E582"  in job:
+           del_list.append(i)  
+        elif "Z_SF_AP_FI_35I_XYM"  in job:
+          del_list.append(i)    
+        else:
+           need_list.append(i)   
+    print(need_list)    
+    workbook = Workbook()
+    workbook.save(r"D:\Users\206692761\OneDrive - NBCUniversal\My Documents\Downloads\excel\cancell.xlsx")
+    path2 = r"D:\Users\206692761\OneDrive - NBCUniversal\My Documents\Downloads\excel\cancell.xlsx"
+    wb_obj = openpyxl.load_workbook(path)
+    ws1 = wb_obj.worksheets[0]
+    wb_obj2 = openpyxl.load_workbook(path2)
+    ws2 = wb_obj2.active
+     # ws2.columns.AutoFit() 
+    k=1
+    for i in need_list:
+        for j in range(1,column1+1):
+            c=ws1.cell(row=i,column=j)
+            ws2.cell(row=k,column=j).value=c.value
+        k=k+1
+    wb_obj2.save(str(path2))        
+       
+     
+sap_download()
+sap_logon()
+open_job()
+new_excel()
